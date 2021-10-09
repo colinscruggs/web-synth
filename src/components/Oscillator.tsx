@@ -31,16 +31,8 @@ export const Oscillator = (props: any) => {
       oscillator.stop();
       oscillator.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(
-    () => {
-        if (oscillator) {
-          oscillator.frequency.value = frequency;
-        }
-    },
-    [frequency],
-  ); // only trigger this effect when frequency changes
   
   const startNote = () => {
     if (gain) {
@@ -58,6 +50,12 @@ export const Oscillator = (props: any) => {
     <button
       onMouseDown={() => startNote()}
       onMouseUp={() => endNote()}
+      onMouseEnter={(e) => {
+        if(e.buttons === 1 || e.buttons === 3) {
+          startNote();
+        }
+      }}
+      onMouseLeave={() => endNote()}
     >{note}</button>
   );
 };
