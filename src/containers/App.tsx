@@ -9,7 +9,6 @@ import "../styles/App.css";
 
 const Block = (props: any) => {
   const { note, column, active, setActive } = props;
-  console.log(setActive);
   return (
     <div 
       className={`${(active ? 'note-block-active ' : ' ')}` + 'note-block'}
@@ -24,29 +23,27 @@ export const App = () => {
   // CONSTANTS
   const SEQ_LENGTH = 8;
   const notes = {
+    'C3': false,
+    'C#3': false,
+    'D3': false,
+    'D#3': false,
+    'E3': false,
+    'F3': false,
+    'F#3': false,
+    'G3': false,
+    'G#3': false,
+    'A3': false,
+    'A#3': false,
+    'B3': false,
     'C4': false,
-    'C#4': false,
-    'D4': false,
-    'D#4': false,
-    'E4': false,
-    'F4': false,
-    'F#4': false,
-    'G4': false,
-    'G#4': false,
-    'A4': false,
-    'A#4': false,
-    'B4': false,
-    'C5': false,
   }
 
   // STATE
   const [isPlaying, setIsPlaying] = useState(false);
-  // const [sequence, setSequence] = useState(['C4', 'D4', 'E4', 'C4', 'F4', 'E4', 'D4', 'G4']);
   const [sequence, setSequence] = useState<any>([]);
 
   const setNoteActive = ((noteNumber: number, note: string) => {
     const newSequence = [...sequence];
-    console.log(newSequence)
     // array of note objects
     //@ts-ignore
     const modifiedNote = newSequence[noteNumber].map(noteObject => {
@@ -61,9 +58,17 @@ export const App = () => {
 
     newSequence.splice(noteNumber, 1, modifiedNote);
     setSequence(newSequence);
-  });
+    Sequence.current.set({
+      // @ts-ignore
+      events: newSequence.map(noteColumn => {
+        // @ts-ignore
+        const activeNote = noteColumn.find(noteObj => noteObj.active);
+        return activeNote?.note ?? null;
+      })
+    });
+  })
 
-  // start audio context and create grid
+  // start audio context and set initial sequence grid state
   useEffect(() => {
     async function startTone() {
       await Tone.start();
@@ -101,9 +106,9 @@ export const App = () => {
   }).toDestination());
 
   const Sequence = useRef(new Tone.Sequence((time, note) => {
-    synth.current.triggerAttackRelease(note, 0.1, time);
+    synth.current.triggerAttackRelease(note ? note : '', 0.1, time);
     // subdivisions are given as subarrays
-  }, sequence));
+  }, []));
 
 
   const toggleLoop = async () => {
@@ -118,12 +123,10 @@ export const App = () => {
     }
   }
 
-  console.log(sequence);
-
   return (
     <div className="App">
     <header className="App-header">
-      WebSynth
+      Sequencer
     </header>
     <br />
     <div className="sequencer-container">
