@@ -8,9 +8,35 @@ import * as Tone from 'tone'
 import "../styles/App.css";
 
 export const App = () => {
+  // start audio context
+  useEffect(() => {
+    async function startTone() {
+      await Tone.start();
+    }
+    startTone();
+  }, []);
 
+  // CONSTANTS
+  const SEQ_LENGTH = 8;
+  const notes = {
+    'C4': 261.63,
+    'C#4': 277.18,
+    'D4': 293.66,
+    'D#4': 311.13,
+    'E4': 329.63,
+    'F4': 349.23,
+    'F#4': 369.99,
+    'G4': 392.00,
+    'G#4': 415.30,
+    'A4': 440.00,
+    'A#4': 466.16,
+    'B4': 493.88,
+    'C5': 523.25
+  }
+
+  // STATE
   const [isPlaying, setIsPlaying] = useState(false);
-  const [sequence, setSequence] = useState(['C4', 'D4', 'E4']);
+  const [sequence, setSequence] = useState(['C4', 'D4', 'E4', 'C4', 'F4', 'E4', 'D4', 'G4']);
   // declare tone synthesizer
   const [oscillator, setOscillator] = useState({
     type: "sine"
@@ -22,6 +48,7 @@ export const App = () => {
     release: 1.5,
   })
 
+  // SYNTH AND SEQUENCE
   const synth = useRef(new Tone.Synth({
     oscillator: {
       // @ts-ignore
@@ -37,13 +64,6 @@ export const App = () => {
     portamento: 0.05
   }).toDestination());
 
-  useEffect(() => {
-    async function startTone() {
-      await Tone.start();
-    }
-    startTone();
-  }, [])
-
   const Sequence = useRef(new Tone.Sequence((time, note) => {
     synth.current.triggerAttackRelease(note, 0.5, time);
     // subdivisions are given as subarrays
@@ -56,7 +76,6 @@ export const App = () => {
       Sequence.current.stop();
       setIsPlaying(false);
     } else {
-
       Sequence.current.start();
       Tone.Transport.start();
       setIsPlaying(true);
@@ -69,6 +88,40 @@ export const App = () => {
       WebSynth
     </header>
     <br />
+    <div className="sequencer-container">
+      {
+        sequence.map((sequenceNote, i) => {
+          const options = Object.entries(notes).map((note, i) => {
+            return (
+              <option
+                value={note[0]}
+                selected={note[0] === sequenceNote}
+              >{note[0]}</option>
+            )
+          });
+          return (
+            <select 
+              key={sequenceNote + i}
+              id={i + ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                const index = +e.target.id;
+                const newSequence = [...sequence];
+                newSequence.splice(index, 1, val);
+                setSequence(newSequence);
+                Sequence.current.set({
+                  // @ts-ignore
+                  events: newSequence
+                })
+              }}
+            >
+              { options }
+            </select>
+          )
+        })
+      }
+    </div>
+
     <button onClick={() => toggleLoop()}>{ isPlaying ? 'Stop': 'Start'}</button>
   </div>
   );
