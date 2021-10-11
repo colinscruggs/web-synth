@@ -7,67 +7,108 @@ import * as Tone from 'tone'
 // import "rc-slider/assets/index.css";
 import "../styles/App.css";
 
+const Block = (props: any) => {
+  const { note, column, active, setActive } = props;
+  return (
+    <div 
+      className={`${(active ? 'note-block-active ' : ' ')}` + 'note-block'}
+      onClick={() => {setActive(column, note)}}
+    >
+      {note}
+    </div>
+  )
+}
+
 export const App = () => {
-  // start audio context
+  // CONSTANTS
+  const SEQ_LENGTH = 8;
+  const notes = {
+    'C3': false,
+    'C#3': false,
+    'D3': false,
+    'D#3': false,
+    'E3': false,
+    'F3': false,
+    'F#3': false,
+    'G3': false,
+    'G#3': false,
+    'A3': false,
+    'A#3': false,
+    'B3': false,
+    'C4': false,
+  }
+
+  // STATE
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [sequence, setSequence] = useState<any>([]);
+
+  const setNoteActive = ((noteNumber: number, note: string) => {
+    const newSequence = [...sequence];
+    // array of note objects
+    //@ts-ignore
+    const modifiedNote = newSequence[noteNumber].map(noteObject => {
+      if (noteObject.active) {
+        return {...noteObject, active: false}
+      } else if (noteObject.note === note) {
+        return {...noteObject, active: true}
+      } else {
+        return noteObject;
+      }
+    });
+
+    newSequence.splice(noteNumber, 1, modifiedNote);
+    setSequence(newSequence);
+    Sequence.current.set({
+      // @ts-ignore
+      events: newSequence.map(noteColumn => {
+        // @ts-ignore
+        const activeNote = noteColumn.find(noteObj => noteObj.active);
+        return activeNote?.note ?? null;
+      })
+    });
+  })
+
+  // start audio context and set initial sequence grid state
   useEffect(() => {
     async function startTone() {
       await Tone.start();
     }
     startTone();
+    const noteColumns = [];
+    for (let i = 0; i < SEQ_LENGTH; i++) {
+      noteColumns.push(
+        [...Object.entries(notes).map(note => {
+          return {
+            note: note[0],
+            active: false,
+            column: i
+          }
+        })]
+      )
+    }
+    setSequence(noteColumns)
   }, []);
-
-  // CONSTANTS
-  const SEQ_LENGTH = 8;
-  const notes = {
-    'C4': 261.63,
-    'C#4': 277.18,
-    'D4': 293.66,
-    'D#4': 311.13,
-    'E4': 329.63,
-    'F4': 349.23,
-    'F#4': 369.99,
-    'G4': 392.00,
-    'G#4': 415.30,
-    'A4': 440.00,
-    'A#4': 466.16,
-    'B4': 493.88,
-    'C5': 523.25
-  }
-
-  // STATE
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [sequence, setSequence] = useState(['C4', 'D4', 'E4', 'C4', 'F4', 'E4', 'D4', 'G4']);
-  // declare tone synthesizer
-  const [oscillator, setOscillator] = useState({
-    type: "sine"
-  });
-  const [envelope, setEnvelope] = useState({
-    attack: 0.3,
-    decay: 0.2,
-    sustain: 0.2,
-    release: 1.5,
-  })
 
   // SYNTH AND SEQUENCE
   const synth = useRef(new Tone.Synth({
     oscillator: {
       // @ts-ignore
-      type: "sine"
+      type: "triangle"
     },
     envelope: {
-      attackCurve: "exponential",
-      attack: 0.3,
-      decay: 0.2,
-      sustain: 0.2,
-      release: 1.5,
+      attackCurve: "linear",
+      attack: 0.05,
+      decay: 0.5,
+      sustain: 1.0,
+      release: 1
     },
     portamento: 0.05
   }).toDestination());
 
   const Sequence = useRef(new Tone.Sequence((time, note) => {
-    synth.current.triggerAttackRelease(note, 0.5, time);
+    synth.current.triggerAttackRelease(note ? note : '', 0.1, time);
     // subdivisions are given as subarrays
-  }, sequence));
+  }, []));
 
 
   const toggleLoop = async () => {
@@ -85,38 +126,26 @@ export const App = () => {
   return (
     <div className="App">
     <header className="App-header">
-      WebSynth
+      Sequencer
     </header>
     <br />
     <div className="sequencer-container">
       {
-        sequence.map((sequenceNote, i) => {
-          const options = Object.entries(notes).map((note, i) => {
+        sequence.map((noteArray: [{note: string, active: boolean, column: number}], noteIndex: number) => {
+          const noteColumnBlocks = noteArray.map(note => {
             return (
-              <option
-                value={note[0]}
-                selected={note[0] === sequenceNote}
-              >{note[0]}</option>
+              <Block
+                note={note.note}
+                active={note.active}
+                column={note.column}
+                setActive={setNoteActive}
+              />
             )
-          });
+          })
           return (
-            <select 
-              key={sequenceNote + i}
-              id={i + ''}
-              onChange={(e) => {
-                const val = e.target.value;
-                const index = +e.target.id;
-                const newSequence = [...sequence];
-                newSequence.splice(index, 1, val);
-                setSequence(newSequence);
-                Sequence.current.set({
-                  // @ts-ignore
-                  events: newSequence
-                })
-              }}
-            >
-              { options }
-            </select>
+            <div className='sequencer-column'>
+            { noteColumnBlocks }
+          </div>
           )
         })
       }
