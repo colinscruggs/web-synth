@@ -5,7 +5,11 @@ export const Oscillator = (props: any) => {
   const {
     frequency,
     note,
-    waveform
+    waveform,
+    isPlaying,
+    attackTime,
+    sustainLevel,
+    releaseTime
   } = props;
 
   const [oscillator, setOscillator] = useState<OscillatorNode|undefined>(undefined);
@@ -13,49 +17,39 @@ export const Oscillator = (props: any) => {
 
   const { audioContext } = useContext(context);
 
+  // useEffect(() => {
+  //   const oscillator = audioContext.createOscillator();
+  //   const gain = audioContext.createGain();
+
+  //   oscillator.frequency.value = frequency;
+  //   oscillator.type = waveform as OscillatorType;
+  //   oscillator.start();
+  //   oscillator.stop(audioContext.currentTime + 1);
+  //   oscillator.connect(gain);
+  //   setOscillator(oscillator);
+
+  //   // gain.gain.value = 0;
+  //   gain.gain.setValueAtTime(0, 0);
+  //   gain.gain.linearRampToValueAtTime(sustainLevel, audioContext.currentTime + 1 * attackTime);
+  //   gain.gain.setValueAtTime(sustainLevel, audioContext.currentTime + 1 - 1 * releaseTime);
+  //   gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1);
+  //   gain.connect(audioContext.destination);
+  //   setGain(gain);
+
+  //   return () => {
+  //     oscillator.stop();
+  //     oscillator.disconnect();
+  //   };
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
+
   useEffect(() => {
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-
-    oscillator.frequency.value = frequency;
-    oscillator.type = waveform as OscillatorType;
-    oscillator.start();
-    oscillator.connect(gain);
-    setOscillator(oscillator);
-
-    gain.gain.value = 0;
-    gain.connect(audioContext.destination);
-    setGain(gain);
-
-    return () => {
-      oscillator.stop();
-      oscillator.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
-  const startNote = () => {
     if (gain) {
-      gain.gain.value = 1;
+      gain.gain.value = isPlaying ? 1 : 0;
     }
-  }
-
-  const endNote = () => {
-    if (gain) {
-      gain.gain.value = 0;
-    }
-  }
+  }, [isPlaying])
 
   return (
-    <button
-      onMouseDown={() => startNote()}
-      onMouseUp={() => endNote()}
-      onMouseEnter={(e) => {
-        if(e.buttons === 1 || e.buttons === 3) {
-          startNote();
-        }
-      }}
-      onMouseLeave={() => endNote()}
-    >{note}</button>
+    null
   );
 };

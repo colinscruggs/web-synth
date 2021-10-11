@@ -23,3 +23,12 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+
+.sequencer-container {
+  display: flex;
+  padding: 1em;
+}
+
+.sequencer-container > * {
+  margin: 0 0.25em;
+}
