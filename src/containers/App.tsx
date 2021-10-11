@@ -1,22 +1,13 @@
-import React, { useContext, useEffect, useState, useRef, useCallback } from "react";
-// @ts-nocheck
-
+import React, { useEffect, useState, useRef } from "react";
+import Block from '../components/Block'
 import * as Tone from 'tone'
 
-// import Slider from "rc-slider";
-// import "rc-slider/assets/index.css";
 import "../styles/App.css";
 
-const Block = (props: any) => {
-  const { note, column, active, setActive } = props;
-  return (
-    <div 
-      className={`${(active ? 'note-block-active ' : ' ')}` + 'note-block'}
-      onClick={() => {setActive(column, note)}}
-    >
-      {note}
-    </div>
-  )
+interface Note {
+  note: string,
+  active: boolean,
+  column?: number
 }
 
 export const App = () => {
@@ -40,12 +31,11 @@ export const App = () => {
 
   // STATE
   const [isPlaying, setIsPlaying] = useState(false);
-  const [sequence, setSequence] = useState<any>([]);
+  const [sequence, setSequence] = useState<Note[][]>([]);
 
   const setNoteActive = ((noteNumber: number, note: string) => {
     const newSequence = [...sequence];
-    // array of note objects
-    //@ts-ignore
+    // modify the given note within the correct noteNumber
     const modifiedNote = newSequence[noteNumber].map(noteObject => {
       if (noteObject.active) {
         return {...noteObject, active: false}
@@ -61,14 +51,13 @@ export const App = () => {
     Sequence.current.set({
       // @ts-ignore
       events: newSequence.map(noteColumn => {
-        // @ts-ignore
         const activeNote = noteColumn.find(noteObj => noteObj.active);
         return activeNote?.note ?? null;
       })
     });
   })
 
-  // start audio context and set initial sequence grid state
+  // INIT: start audio context and set initial sequence grid state
   useEffect(() => {
     async function startTone() {
       await Tone.start();
@@ -131,7 +120,7 @@ export const App = () => {
     <br />
     <div className="sequencer-container">
       {
-        sequence.map((noteArray: [{note: string, active: boolean, column: number}], noteIndex: number) => {
+        sequence.map((noteArray: Note[], noteIndex: number) => {
           const noteColumnBlocks = noteArray.map(note => {
             return (
               <Block
