@@ -27,8 +27,24 @@
 .sequencer-container {
   display: flex;
   padding: 1em;
+  justify-content: center;
+  align-items: center;
 }
 
-.sequencer-container > * {
-  margin: 0 0.25em;
+.sequencer-column {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.note-block {
+  width: 30px;
+  height: 30px;
+  margin: 0.1em 0.6em;
+  padding: 10px;
+  background: blue;
+  font-size: 16px;
+}
+
+.note-block-active {
+  background: red;
 }
