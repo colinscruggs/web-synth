@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState, useRef, useCallback } from "react";
-// @ts-nocheck
+import Slider from 'react-input-slider';
+import useDebounce from './use-debounce'
 
 import * as Tone from 'tone'
 
@@ -38,7 +39,7 @@ export const App = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [sequence, setSequence] = useState(['C4', 'D4', 'E4', 'C4', 'F4', 'E4', 'D4', 'G4']);
   // declare tone synthesizer
-  const [oscillator, setOscillator] = useState({
+  const [oscillatorType, setOscillatorType] = useState({
     type: "sine"
   });
   const [envelope, setEnvelope] = useState({
@@ -47,6 +48,8 @@ export const App = () => {
     sustain: 0.2,
     release: 1.5,
   })
+  const [attack, setAttack] = useState(0.3);
+  const debouncedAttack = useDebounce(attack, 500);
 
   // SYNTH AND SEQUENCE
   const synth = useRef(new Tone.Synth({
@@ -69,6 +72,12 @@ export const App = () => {
     // subdivisions are given as subarrays
   }, sequence));
 
+  
+  useEffect(() => {
+    // debounce(updateSynth, 100)
+    updateSynth();
+  }, [debouncedAttack])
+
 
   const toggleLoop = async () => {
     if (isPlaying) {
@@ -80,6 +89,20 @@ export const App = () => {
       Tone.Transport.start();
       setIsPlaying(true);
     }
+  }
+
+  const updateSynth = () => {
+    console.log(attack);
+    console.log(debouncedAttack);
+    synth.current.set({
+      envelope: {
+        attack: attack,
+        decay: 0.2,
+        sustain: 0.2,
+        release: 1.5,
+      }
+    });
+    console.log(synth.current);
   }
 
   return (
@@ -121,8 +144,27 @@ export const App = () => {
         })
       }
     </div>
-
     <button onClick={() => toggleLoop()}>{ isPlaying ? 'Stop': 'Start'}</button>
+    <br />
+    <div className="envelope-container">
+      <h3>Envelope</h3>
+      <div>
+        <span>Attack</span>
+        <Slider
+          axis='x'
+          xmin={0}
+          xmax={100}
+          x={attack * 100}
+          onChange={({ x }) => {
+            console.log(x / 100);
+            setAttack(x / 100);
+            // setAttack(x / 100);
+          }}
+          // value={this.state.value}
+          // onChange={this.onSliderChange}
+        />
+      </div>
+    </div>
   </div>
   );
 };
