@@ -6,8 +6,11 @@
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
   min-height: 100vh;
+}
+
+.App-header {
+  color: #FFFCF2;
 }
 
 .sequencer-container {
@@ -45,4 +48,25 @@
 .note-block-active {
   background: #EB5E28;
   color: #201F1D;
+}
+
+.note-control-container {
+  color: #FFFCF2;
+  display: flex;
+  background: #2B2927;
+  border-radius: 2.5px;
+  margin: 0.25em;
+  padding: .5em;
+  font-size: 14px;
+}
+
+.note-control-container > div {
+    padding: 0.5em;
+    color: #2B2927;
+}
+
+.note-control-container > div > span {
+  position: relative;
+  bottom: 0.5em;
+  color: #FFFCF2;
 }
